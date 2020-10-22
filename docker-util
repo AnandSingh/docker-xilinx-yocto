@@ -1,0 +1,56 @@
+#!/bin/bash
+SCRIPT=$0
+
+TAG="2019.2"
+
+function usage()
+{
+    echo "Usage: $SCRIPT $1 <Dockerfile-path> <container-tag>"
+}
+
+function build()
+{
+    # $1: Dockerfile path
+    # $2: container tag
+    
+    if [ -z $2 ]; then
+        echo "Using Default Container tag as : $TAG"
+    else
+        TAG=$2
+        echo "Using Container tag as : $TAG"
+    fi
+
+    if [ -z $1 ]; then
+        echo "path for Dockerfile missing !"
+        usage "build"
+        exit
+    fi
+
+    docker build --build-arg "host_uid=$(id -u)" --build-arg "host_gid=$(id -g)" --tag "xilinx-yocto:$TAG" $1
+}
+
+function run()
+{
+    # $1: container tag
+    if [ -z $1 ]; then
+        echo "Using Default Container tag as : $TAG"
+    else
+        TAG=$1
+        echo "Using Container tag as : $TAG"
+    fi
+    docker run -it --rm -v $PWD:/public/work xilinx-yocto:$TAG
+}
+
+case $1 in 
+    "build")
+        echo "==== build ===="
+        build $2 $3
+        ;;
+    "run")
+        echo "==== run ===="
+        run $2
+        ;;
+    *)
+        usage
+        ;;
+esac
